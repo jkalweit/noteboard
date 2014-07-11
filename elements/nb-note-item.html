@@ -1,0 +1,50 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+
+<polymer-element name="nb-note-item" attributes="item">
+    <template>
+        <style>
+            :host {
+                display: block;
+                width: 100%;
+                color: {{ color }};
+            }
+        </style>
+
+        <div style="float: right">
+            <paper-button icon="delete" on-click="{{deleteItem}}"></paper-button>
+        </div>
+        <div style="margin-right: 50px;">
+            <paper-input label="Text" value="{{ item.title }}" style="width: 100%;"></paper-input>
+        </div>
+
+    </template>
+    <script>
+        Polymer('nb-note-item', {
+            item: {},
+            color: "#00CC00",
+            ready: function () {
+                this.updateColor();
+                setInterval(this.updateColor.bind(this), 5000);
+            },
+            deleteItem: function () {
+                this.fire('delete-item', { id: this.item.id });
+            },
+            getColor: function () {
+                var age = Date.now() - this.item.timestamp;
+                if(age < 43200000)
+                    return '#000000';
+                else if(age < 86400000)
+                    return '#777777';
+                else if(age < 604800000)
+                    return '#DDDDDD';
+                else
+                    return '#FFFFFF';
+            },
+            updateColor: function () {
+                this.color = this.getColor();
+            }
+        });
+    </script>
+</polymer-element>

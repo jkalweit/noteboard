@@ -1,0 +1,21 @@
+{
+  "name": "noteboard",
+  "version": "0.0.0",
+  "authors": [
+    "Justin Kalweit <kalweit@alumni.duke.edu>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.3.3",
+    "platform": "Polymer/platform#~0.3.3",
+    "core-elements": "Polymer/core-elements#~0.3.4",
+    "paper-elements": "Polymer/paper-elements#~0.3.4"
+  }
+}

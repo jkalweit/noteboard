@@ -1,0 +1,83 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-shadow/paper-shadow.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="click-elsewhere.html">
+
+
+<polymer-element name="float-drawer" attributes="keep isopen">
+    <template>
+        <style>
+            :host {
+                position: absolute;
+                top: 0px;
+                right: 0px;
+                width: 20px;
+                min-height: 100%;
+                background-color: white;
+                padding-left: 10px;
+                z-index: 3;
+                transition: width .5s ease-in-out;
+                overflow: hidden;
+            }
+
+            .keep {
+                transform: rotate(90deg);
+                -webkit-transform: rotate(90deg);
+                fill: #0000ee;
+            }
+
+        </style>
+
+        <click-elsewhere on-clickoutside="{{close}}" on-clickinside="{{open}}"></click-elsewhere>
+
+        <paper-shadow z="{{keep ? 1 : 2}}"></paper-shadow>
+
+
+        <paper-button class="{{ {keep: keep} | tokenList }}" icon="keep" on-click="{{toggleKeep}}" style="font-weight: bold; font-size: 20px; color: #333333;"></paper-button>
+
+        <content></content>
+
+    </template>
+    <script>
+        Polymer('float-drawer', {
+            isopen: true,
+            openWidth: '270px',
+            closedWidth: '20px',
+            keep: true,
+            ready: function () {
+                this.update();
+            },
+            toggleKeep: function () {
+                this.keep = !this.keep;
+                this.isopen = this.keep;
+                this.update();
+            },
+            toggle: function () {
+                if(!this.keep) {
+                    this.isopen = !this.isopen;
+                } else {
+                    this.isopen = true;
+                }
+
+                this.update();
+            },
+            open: function () {
+                this.isopen = true;
+                this.update();
+            },
+            close: function () {
+                if(!this.keep) {
+                    this.isopen = false;
+                    this.update();
+                }
+            },
+            update: function () {
+                if (this.isopen) {
+                    this.style.width = this.openWidth;
+                } else {
+                    this.style.width = this.closedWidth;
+                }
+            }
+        });
+    </script>
+</polymer-element>

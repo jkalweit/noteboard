@@ -1,0 +1,68 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/core-item/core-item.html">
+<link rel="import" href="../bower_components/core-menu-button/core-menu-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-shadow/paper-shadow.html">
+<link rel="import" href="nb-note-item.html">
+<polymer-element name="nb-note" attributes="note">
+    <template>
+        <style>
+            :host {
+                float: left;
+                width: 280px;
+                height: 420px;
+                background-color: #eeeeee;
+                margin-left: 10px;
+                margin-top: 10px;
+                padding: 10px 5px 0px 20px;
+            }
+        </style>
+
+        <paper-shadow z="1"></paper-shadow>
+
+        <div style="float: right">
+            <core-menu-button icon="menu">
+                <core-item icon="add" label="Add Item" on-click="{{addItem}}"></core-item>
+                <core-item icon="delete" label="Delete" on-click="{{deleteNote}}"></core-item>
+            </core-menu-button>
+        </div>
+        <div style="margin-right: 50px;">
+            <paper-input label="Title" value="{{ note.title }}" style="width: 100%; font-size: 20px"></paper-input>
+        </div>
+
+        <template repeat="{{ item in note.items }}">
+            <nb-note-item item="{{item}}" on-delete-item="{{deleteItem}}"></nb-note-item>
+        </template>
+
+    </template>
+    <script>
+        Polymer('nb-note', {
+            note: {},
+            showControls: false,
+            deleteNote: function () {
+                if(confirm('Delete note: "' + this.note.title + '"?'))
+                    this.fire('delete-note', { id: this.note.id });
+            },
+            addItem: function () {
+                if(!this.note.items){
+                    this.note.currId = 0;
+                    this.note.items = [];
+                }
+                this.note.items.push({
+                    id: ++this.note.currId,
+                    text: '',
+                    timestamp: Date.now()
+                });
+            },
+            deleteItem: function (e, detail) {
+                for(var i = 0; i < this.note.items.length; i++) {
+                    if(this.note.items[i].id == detail.id){
+                        this.note.items.splice(i, 1);
+                        return;
+                    }
+                }
+            }
+        });
+    </script>
+</polymer-element>
