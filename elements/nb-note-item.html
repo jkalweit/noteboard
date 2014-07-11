@@ -10,9 +10,18 @@
                 width: 100%;
                 color: {{ color }};
             }
+
+            .controls {
+                opacity: 0;
+                transition: opacity .5s ease-out;
+            }
+
+            .controls:hover {
+                opacity: 1;
+            }
         </style>
 
-        <div style="float: right">
+        <div class="controls" style="float: right">
             <paper-button icon="delete" on-click="{{deleteItem}}"></paper-button>
         </div>
         <div style="margin-right: 50px;">
