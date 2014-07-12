@@ -48,6 +48,8 @@ function loadDb() {
 
     if(!db) {
         db = {
+            currId: 0,
+            list: []
         };
     }
 }
