@@ -5,11 +5,11 @@ var http = require('http');
 var server = http.createServer(function (req, res) {
 
     var file = req.url;
-    if(file == '/') file = '/index.html';
+    if (file == '/') file = '/index.html';
 
     fs.readFile('public' + file, function (err, data) {
 
-        if(err) {
+        if (err) {
             res.writeHead(404);
             res.end(JSON.stringify(err));
             return;
@@ -25,8 +25,8 @@ var server = http.createServer(function (req, res) {
 var db;
 
 function saveDb() {
-    fs.writeFile("./db.json", JSON.stringify(db), function(err) {
-        if(err) {
+    fs.writeFile("./db.json", JSON.stringify(db), function (err) {
+        if (err) {
             console.log('Error saving db: ' + err);
         } else {
             console.log('Db saved.');
@@ -36,7 +36,7 @@ function saveDb() {
 
 
 function loadDb() {
-    if(fs.existsSync('./db.json')){
+    if (fs.existsSync('./db.json')) {
         fs.readFile('./db.json', 'utf8', function (err, data) {
             if (err) {
                 console.log('Could not load db: ' + err);
@@ -46,7 +46,7 @@ function loadDb() {
         });
     }
 
-    if(!db) {
+    if (!db) {
         db = {
             currId: 0,
             list: []
@@ -58,19 +58,18 @@ function loadDb() {
 loadDb();
 
 
-
 var io = require('socket.io')(server);
 
-io.on('connection', function(socket){
+io.on('connection', function (socket) {
     console.log('a user connected');
 
-    io.emit('dbupdated', db);
+    socket.emit('dbupdated', db);
 
-    socket.on('updatedb', function(newdb) {
+    socket.on('updatedb', function (newdb) {
         console.log('updatedb! ' + JSON.stringify(newdb));
 
         db = newdb;
         saveDb();
-        io.emit('dbupdated', db);
+        socket.broadcast.emit('dbupdated', db);
     });
 });
