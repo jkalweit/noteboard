@@ -7,7 +7,7 @@ var server = http.createServer(function (req, res) {
     var file = req.url;
     if(file == '/') file = '/index.html';
 
-    fs.readFile('.' + file, function (err, data) {
+    fs.readFile('public' + file, function (err, data) {
 
         if(err) {
             res.writeHead(404);
