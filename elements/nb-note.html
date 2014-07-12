@@ -54,6 +54,8 @@
                     text: '',
                     timestamp: Date.now()
                 });
+
+                this.fire('core-signal', { name: 'db-updated' });
             },
             deleteItem: function (e, detail) {
                 for(var i = 0; i < this.note.items.length; i++) {

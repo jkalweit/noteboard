@@ -19,4 +19,56 @@ var server = http.createServer(function (req, res) {
         res.end(data);
     });
 
-}).listen(port);
+}).listen(port)
+
+
+var db;
+
+function saveDb() {
+    fs.writeFile("./db.json", JSON.stringify(db), function(err) {
+        if(err) {
+            console.log('Error saving db: ' + err);
+        } else {
+            console.log('Db saved.');
+        }
+    });
+}
+
+
+function loadDb() {
+    if(fs.existsSync('./db.json')){
+        fs.readFile('./db.json', 'utf8', function (err, data) {
+            if (err) {
+                console.log('Could not load db: ' + err);
+            }
+
+            db = JSON.parse(data);
+        });
+    }
+
+    if(!db) {
+        db = {
+        };
+    }
+}
+
+
+loadDb();
+
+
+
+var io = require('socket.io')(server);
+
+io.on('connection', function(socket){
+    console.log('a user connected');
+
+    io.emit('dbupdated', db);
+
+    socket.on('updatedb', function(newdb) {
+        console.log('updatedb! ' + JSON.stringify(newdb));
+
+        db = newdb;
+        saveDb();
+        io.emit('dbupdated', db);
+    });
+});

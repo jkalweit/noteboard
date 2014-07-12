@@ -1,0 +1,22 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<polymer-element name="remote-db" attributes="socket">
+    <template>
+    </template>
+    <script>
+        Polymer('remote-db', {
+            socket: null,
+            ready: function() {
+                if(this.socket) {
+                    this.socket.on('dbupdated', function (db) {
+                        console.log('db updated, fire it up');
+                        this.fire('dbupdated', db);
+                    }.bind(this));
+                }
+            },
+            updatedb: function (db) {
+                this.socket.emit('updatedb', db);
+            }
+        });
+    </script>
+</polymer-element>

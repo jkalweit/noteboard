@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/core-icon-button/core-icon-button.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="remote-db.html">
 <link rel="import" href="float-drawer.html">
 <link rel="import" href="nb-note.html">
 
@@ -17,12 +19,17 @@
             }
         </style>
 
+        <remote-db id="socketdb" socket="{{socket}}" on-dbupdated="{{dbupdated}}"></remote-db>
+
         <float-drawer keep="false" isopen="false">
             <div style="width: 250px;">
                 <h1>Notes</h1>
-                <paper-button icon="save" label="Save" on-click="{{save}}"></paper-button><br/>
-                <paper-button icon="add" label="Add Note" on-click="{{addNote}}"></paper-button><br/>
-                <paper-button icon="undo" label="Load Demo" on-click="{{loadDemo}}"></paper-button><br/>
+                <paper-button icon="save" label="Save" on-click="{{save}}"></paper-button>
+                <br/>
+                <paper-button icon="add" label="Add Note" on-click="{{addNote}}"></paper-button>
+                <br/>
+                <paper-button icon="undo" label="Load Demo" on-click="{{loadDemo}}"></paper-button>
+                <br/>
             </div>
         </float-drawer>
 
@@ -34,22 +41,28 @@
     </template>
     <script>
         Polymer('nb-app', {
+            socket: io(),
             ready: function () {
                 this.load();
             },
+            dbupdated: function (e, detail) {
+                //console.log('db updated! ' + JSON.stringify(detail));
+                this.notes = detail;
+            },
             save: function () {
-                localStorage.setItem('notes', JSON.stringify(this.notes));
+                //localStorage.setItem('notes', JSON.stringify(this.notes));
+                this.$.socketdb.updatedb(this.notes);
             },
             load: function () {
-                var d = localStorage.getItem('notes');
-                this.jsonText = d;
-                if (d !== null)
-                    this.notes = JSON.parse(d);
-                else
-                    this.notes = {
-                        currId: 0,
-                        list: []
-                    }
+//                var d = localStorage.getItem('notes');
+//                this.jsonText = d;
+//                if (d !== null)
+//                    this.notes = JSON.parse(d);
+//                else
+//                    this.notes = {
+//                        currId: 0,
+//                        list: []
+//                    }
             },
             addNote: function () {
                 this.notes.list.push({
@@ -58,8 +71,8 @@
                 });
             },
             deleteNote: function (e, detail) {
-                for(var i = 0; i < this.notes.list.length; i++) {
-                    if(this.notes.list[i].id == detail.id){
+                for (var i = 0; i < this.notes.list.length; i++) {
+                    if (this.notes.list[i].id == detail.id) {
                         this.notes.list.splice(i, 1);
                         return;
                     }
