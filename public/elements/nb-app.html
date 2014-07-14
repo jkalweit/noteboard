@@ -61,6 +61,8 @@
                 this.$.remotedb.updatedb();
             },
             addNote: function () {
+                if(!this.notes)
+                    this.notes = {};
                 if(!this.notes.list) {
                     this.notes.currId = 0;
                     this.notes.list = [];
