@@ -22,40 +22,33 @@ var server = http.createServer(function (req, res) {
 }).listen(port)
 
 
-var db;
-
-function saveDb() {
-    fs.writeFile("./db.json", JSON.stringify(db), function (err) {
+function saveDb(room, db) {
+    fs.writeFile('./' + room + '.json', JSON.stringify(db), function (err) {
         if (err) {
-            console.log('Error saving db: ' + err);
+            console.log(room + ': Error saving db: ' + err);
         } else {
-            console.log('Db saved.');
+            console.log(room + ' db saved.');
         }
     });
 }
 
-
-function loadDb() {
-    if (fs.existsSync('./db.json')) {
-        fs.readFile('./db.json', 'utf8', function (err, data) {
+function loadDb(room, callback) {
+    var path = './' + room + '.json';
+    console.log('loading db: ' + path);
+    if (fs.existsSync(path)) {
+        fs.readFile(path, 'utf8', function (err, data) {
             if (err) {
-                console.log('Could not load db: ' + err);
+                console.log(room + ': Could not load db: ' + err);
+                callback(null);
             }
-
-            db = JSON.parse(data);
+            console.log('loaded db: ' + path + ': ' + data);
+            callback(JSON.parse(data));
         });
-    }
-
-    if (!db) {
-        db = {
-            currId: 0,
-            list: []
-        };
+    } else {
+        console.log('no db: ' + path);
+        callback(null);
     }
 }
-
-
-loadDb();
 
 
 var io = require('socket.io')(server);
@@ -63,13 +56,24 @@ var io = require('socket.io')(server);
 io.on('connection', function (socket) {
     console.log('a user connected');
 
-    socket.emit('dbupdated', db);
+    //socket.emit('dbupdated', db);
 
-    socket.on('updatedb', function (newdb) {
-        console.log('updatedb! ' + JSON.stringify(newdb));
+    socket.on('join', function(room) {
+        console.log('joining: ' + room);
+        socket.join(room);
+        var db = loadDb(room, function(db) {
+            console.log('sending: ' + JSON.stringify(db));
+            socket.emit('dbupdated', room, db);
+        });
+    });
 
-        db = newdb;
-        saveDb();
-        socket.broadcast.emit('dbupdated', db);
+
+    socket.on('updatedb', function (room, newdb) {
+        console.log(room + ' updatedb! ' + JSON.stringify(newdb));
+
+        saveDb(room, newdb);
+
+        io.to(room).emit('dbupdated', room, newdb);
+        //socket.broadcast.emit('dbupdated', db);
     });
 });

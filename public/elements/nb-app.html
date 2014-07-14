@@ -19,7 +19,7 @@
             }
         </style>
 
-        <remote-db id="socketdb" socket="{{socket}}" on-dbupdated="{{dbupdated}}"></remote-db>
+        <remote-db id="remotedb" dbname="noteboard" db="{{notes}}"></remote-db>
 
         <float-drawer keep="false" isopen="false">
             <div style="width: 250px;">
@@ -41,30 +41,33 @@
     </template>
     <script>
         Polymer('nb-app', {
-            socket: io(),
             ready: function () {
-                this.load();
+                //this.load();
             },
-            dbupdated: function (e, detail) {
-                //console.log('db updated! ' + JSON.stringify(detail));
-                this.notes = detail;
-            },
-            save: function () {
-                //localStorage.setItem('notes', JSON.stringify(this.notes));
-                this.$.socketdb.updatedb(this.notes);
-            },
-            load: function () {
-//                var d = localStorage.getItem('notes');
-//                this.jsonText = d;
-//                if (d !== null)
-//                    this.notes = JSON.parse(d);
-//                else
+//            dbupdated: function (e, detail) {
+//                if(!detail || JSON.stringify(detail) == '{}') {
+//                    console.log('db empty, defaulting');
 //                    this.notes = {
 //                        currId: 0,
 //                        list: []
-//                    }
+//                    };
+//                } else {
+//                    console.log('db exists: ' + JSON.stringify(detail));
+//                    this.notes = detail;
+//                }
+//            },
+            save: function () {
+                console.log('saving...');
+                this.$.remotedb.updatedb();
             },
             addNote: function () {
+                if(!this.notes.list) {
+                    this.notes.currId = 0;
+                    this.notes.list = [];
+                }
+                if(!this.notes.currId)
+                    this.notes.currId = 0;
+
                 this.notes.list.push({
                     id: ++this.notes.currId,
                     list: []

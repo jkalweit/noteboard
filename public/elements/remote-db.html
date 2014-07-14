@@ -1,21 +1,49 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<polymer-element name="remote-db" attributes="socket">
+<polymer-element name="remote-db" attributes="socket dbname db autosave">
     <template>
     </template>
     <script>
         Polymer('remote-db', {
             socket: null,
+            dbname: null,
+            db: null,
+            autosave: true,
+            cancelNextUpdate: false,
             ready: function() {
-                if(this.socket) {
-                    this.socket.on('dbupdated', function (db) {
-                        console.log('db updated, fire it up');
-                        this.fire('dbupdated', db);
+                if(!this.socket)
+                    this.socket = io();
+                if(this.dbname) {
+                    this.socket.emit('join', this.dbname);
+                    this.socket.on('dbupdated', function (room, db) {
+                        if(room == this.dbname) {
+                            console.log(this.dbname + ' db updated, fire it up');
+                            this.cancelNextUpdate = true; // TODO: Fix this recursive hack
+                            this.db = db;
+                            this.fire('dbupdated', db);
+                        } else
+                            console.log('not my db: ' + room);
                     }.bind(this));
                 }
             },
+            dbChanged: function () {
+
+                if(!this.autosave)
+                    return;
+
+                if(this.cancelNextUpdate) {
+                    this.cancelNextUpdate = false;
+                    console.log('dbChanged and canceled');
+                } else {
+                    console.log('dbChanged and sending to remote!');
+                    this.updatedb();
+                }
+
+            },
             updatedb: function (db) {
-                this.socket.emit('updatedb', db);
+                if(db)
+                    this.db = db;
+                this.socket.emit('updatedb', this.dbname, this.db);
             }
         });
     </script>
