@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<polymer-element name="remote-db" attributes="socket dbname db autosave">
+<polymer-element name="remote-db" attributes="socket dbname db autosave ">
     <template>
     </template>
     <script>
@@ -10,6 +10,7 @@
             db: null,
             autosave: true,
             cancelNextUpdate: false,
+            dbObserver: null,
             ready: function() {
                 if(!this.socket)
                     this.socket = io();
@@ -18,7 +19,7 @@
                     this.socket.on('dbupdated', function (room, db) {
                         if(room == this.dbname) {
                             console.log(this.dbname + ' db updated, fire it up');
-                            this.cancelNextUpdate = true; // TODO: Fix this recursive hack
+                            //this.cancelNextUpdate = true; // TODO: Fix this recursive hack
                             this.db = db;
                             this.fire('dbupdated', db);
                         } else
@@ -28,17 +29,70 @@
             },
             dbChanged: function () {
 
-                if(!this.autosave)
-                    return;
+                function doAutosave() {
 
-                if(this.cancelNextUpdate) {
-                    this.cancelNextUpdate = false;
-                    console.log('dbChanged and canceled');
-                } else {
-                    console.log('dbChanged and sending to remote!');
-                    this.updatedb();
+                    if(!this.autosave) {
+                        console.log('no autosave');
+                        return;
+                    }
+
+                    console.log('doing autosave!');
+                    if(this.cancelNextUpdate) {
+                        this.cancelNextUpdate = false;
+                        console.log('dbChanged and canceled');
+                    } else {
+                        console.log('dbChanged and sending to remote!');
+                        this.updatedb();
+                    }
                 }
 
+
+                function objChanged(added, removed, changed, getOldValueFn) {
+                    // respond to changes to the obj.
+                    Object.keys(added).forEach(function(property) {
+                        console.log('added: ' + property + ' = ' + added[property]);
+                    });
+                    Object.keys(removed).forEach(function(property) {
+                        console.log('removed: ' + property + ' = ' + removed[property]);
+                    });
+                    Object.keys(changed).forEach(function(property) {
+                        console.log('changeed: ' + property + ' to ' + changed[property] + ' from ' + getOldValueFn(property));
+                    });
+
+                    doAutosave.bind(this)();
+                }
+
+                function arrayChanged(splices) {
+                    doAutosave.bind(this)();
+                }
+
+                function bindAll(obj) {
+                    var obs;
+                    if(obj === null) {
+                        console.log('object is null');
+                    } else if(Array.isArray(obj)) {
+                        console.log('binding array obaserver...');
+                        obs = new ArrayObserver(obj);
+                        obs.open(arrayChanged.bind(this));
+                        console.log('bound array obaserver.');
+                        for(var i = 0; i < obj.length; i++)
+                            bindAll.bind(this)(obj[i]);
+                    } else if(typeof obj === 'object'){
+                        console.log('binding object observer...');
+                        obs = new ObjectObserver(obj);
+                        obs.open(objChanged.bind(this));
+                        console.log('bound object observer.');
+                        for(var prop in obj) {
+                            bindAll.bind(this)(obj[prop]);
+                        }
+                    } else {
+                        console.log('not array or object.');
+                    }
+                }
+
+                if(this.db) {
+                    bindAll.bind(this)(this.db);
+                }
             },
             updatedb: function (db) {
                 if(db)

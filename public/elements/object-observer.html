@@ -1,0 +1,88 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<polymer-element name="object-observer" attributes="obj">
+    <template>
+    </template>
+    <script>
+        Polymer('object-observer', {
+            obj: null,
+            ready: function() {
+            },
+            objChanged: function () {
+
+                function objectChanged(path, added, removed, changed, getOldValueFn) {
+                    // respond to changes to the obj.
+                    var newCurrPath;
+                    Object.keys(added).forEach(function(property) {
+                        //console.log('path: ' + path + 'added: ' + property + ' = ' + added[property]);
+                        newCurrPath = path;
+                        if(newCurrPath !== '')
+                            newCurrPath = newCurrPath + '.';
+                        newCurrPath = newCurrPath + property;
+                        bindAll.bind(this)(added[property], newCurrPath)
+                    }.bind(this));
+//                    Object.keys(removed).forEach(function(property) {
+//                        console.log('path: ' + path + 'removed: ' + property + ' = ' + removed[property]);
+//                    });
+//                    Object.keys(changed).forEach(function(property) {
+//                        console.log('path: ' + path + 'changeed: ' + property + ' to ' + changed[property] + ' from ' + getOldValueFn(property));
+//                    });
+
+                    this.fire('changed', {
+                        type: 'object',
+                        path: path,
+                        added: added,
+                        removed: removed,
+                        changed: changed,
+                        getOldValueFn: getOldValueFn
+                    });
+                }
+
+                function arrayChanged(path, splices) {
+                    console.log('array changed: ' + splices.length);
+                    this.fire('changed', {
+                        type: 'array',
+                        path: path,
+                        splices: splices
+                    });
+                }
+
+                function bindAll(obj, currPath) {
+                    var obs;
+                    if(obj === null) {
+                        console.log(currPath + ': object is null');
+                    } else if(Array.isArray(obj)) {
+                        console.log(currPath + ': binding array obaserver...');
+                        obs = new ArrayObserver(obj);
+                        obs.open(function (splices) {
+                            arrayChanged.bind(this)(currPath, splices);
+                        }.bind(this));
+                        console.log(currPath + ': bound array obaserver.');
+                        for(var i = 0; i < obj.length; i++) {
+                            bindAll.bind(this)(obj[i], currPath + '[' + i + ']');
+                        }
+                    } else if(typeof obj === 'object'){
+                        console.log(currPath + ': binding object observer...');
+                        obs = new ObjectObserver(obj);
+                        obs.open(function(added, removed, changed, getOldValueFn) {
+                            objectChanged.bind(this)(currPath, added, removed, changed, getOldValueFn);
+                        }.bind(this));
+                        console.log(currPath + ': bound object observer.');
+                        var newCurrPath;
+                        for(var prop in obj) {
+                            newCurrPath = currPath;
+                            if(newCurrPath !== '')
+                                newCurrPath = newCurrPath + '.';
+                            newCurrPath = newCurrPath + prop;
+                            bindAll.bind(this)(obj[prop], newCurrPath);
+                        }
+                    } else {
+                        console.log(currPath + ': not array or object.');
+                    }
+                }
+
+                bindAll.bind(this)(this.obj, '');
+            }
+        });
+    </script>
+</polymer-element>

@@ -2,7 +2,8 @@
 <link rel="import" href="../bower_components/core-icon-button/core-icon-button.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 
-<link rel="import" href="remote-db.html">
+<!--<link rel="import" href="remote-db.html">-->
+<link rel="import" href="object-observer.html">
 <link rel="import" href="float-drawer.html">
 <link rel="import" href="nb-note.html">
 
@@ -19,7 +20,8 @@
             }
         </style>
 
-        <remote-db id="remotedb" dbname="noteboard" db="{{notes}}"></remote-db>
+        <!--<remote-db id="remotedb" dbname="noteboard" db="{{notes}}" autosave="true"></remote-db>-->
+        <object-observer obj="{{notes}}" on-changed="{{changed}}"></object-observer>
 
         <float-drawer keep="false" isopen="false">
             <div style="width: 250px;">
@@ -43,6 +45,26 @@
         Polymer('nb-app', {
             ready: function () {
                 //this.load();
+                this.notes = {
+                    currId: 3,
+                    list: [
+                        {
+                            id: 1,
+                            title: 'Note 1',
+                            list: []
+                        },
+                        {
+                            id: 2,
+                            title: 'Note 2',
+                            list: []
+                        },
+                        {
+                            id: 3,
+                            title: 'Note 3',
+                            list: []
+                        },
+                    ]
+                }
             },
 //            dbupdated: function (e, detail) {
 //                if(!detail || JSON.stringify(detail) == '{}') {
@@ -56,6 +78,24 @@
 //                    this.notes = detail;
 //                }
 //            },
+            changed: function(e, detail) {
+                console.log('   changed: ' + detail.type + ': ' + detail.path);
+                if(detail.type === 'object'){
+                    Object.keys(detail.added).forEach(function(property) {
+                        console.log('     path: ' + detail.path + ' added: ' + property + ' = ' + detail.added[property]);
+                    });
+                    Object.keys(detail.removed).forEach(function(property) {
+                        console.log('     path: ' + detail.path + ' removed: ' + property + ' = ' + detail.removed[property]);
+                    });
+                    Object.keys(detail.changed).forEach(function(property) {
+                        console.log('     path: ' + detail.path + ' changed: ' + property + ' to ' + detail.changed[property] + ' from ' + detail.getOldValueFn(property));
+                    });
+                } else if(detail.type === 'array'){
+                    console.log('   array changed: ' + detail.path + ': ' + detail.splices.length);
+                } else {
+                    console.log('   unknown change type: ' + detail.type);
+                }
+            },
             save: function () {
                 console.log('saving...');
                 this.$.remotedb.updatedb();
